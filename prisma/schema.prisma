@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,3 +6,139 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+
+
+model User {
+  id            String    @id
+  name          String?
+  email         String?   @unique
+  password      String?
+  emailVerified DateTime?
+  image         String?
+  Account       Account[]
+  Review        Review?
+}
+
+model Account {
+  id                String  @id
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  User              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Category {
+  id          String       @id
+  name        String
+  productId   String       @unique
+  Product     Product      @relation(fields: [productId], references: [id])
+  SubCategory SubCategory?
+}
+
+model Color {
+  id           String     @id
+  color        String
+  image        String
+  subProductId String     @unique
+  SubProduct   SubProduct @relation(fields: [subProductId], references: [id])
+}
+
+model Detail {
+  id        String  @id
+  name      String
+  value     String
+  productId String  @unique
+  Product   Product @relation(fields: [productId], references: [id])
+}
+
+model Product {
+  id           String       @id
+  name         String
+  description  String
+  brand        String?
+  refundPolicy String       @default("30 days")
+  rating       Int          @default(0)
+  numReviews   Int          @default(0)
+  shipping     Int          @default(0)
+  createdAT    DateTime     @default(now())
+  updatedAt    DateTime
+  Category     Category?
+  Detail       Detail?
+  Question     Question?
+  Review       Review?
+  SubCategory  SubCategory?
+  SubProduct   SubProduct?
+}
+
+model Question {
+  id        String  @id
+  question  String
+  answer    String
+  productId String  @unique
+  Product   Product @relation(fields: [productId], references: [id])
+}
+
+model Review {
+  id        String   @id
+  rating    Int      @default(0)
+  review    String
+  size      String?
+  fit       String
+  images    String[]
+  likes     String[]
+  userId    String   @unique
+  productId String   @unique
+  Product   Product  @relation(fields: [productId], references: [id])
+  User      User     @relation(fields: [userId], references: [id])
+  Style     Style?
+}
+
+model Size {
+  id           String     @id
+  size         String
+  quantity     Int
+  price        Int
+  subProductId String     @unique
+  SubProduct   SubProduct @relation(fields: [subProductId], references: [id])
+}
+
+model Style {
+  id       String @id
+  color    String
+  image    String
+  reviewId String @unique
+  Review   Review @relation(fields: [reviewId], references: [id])
+}
+
+model SubCategory {
+  id         String   @id
+  name       String
+  categoryId String   @unique
+  productId  String   @unique
+  Category   Category @relation(fields: [categoryId], references: [id])
+  Product    Product  @relation(fields: [productId], references: [id])
+}
+
+model SubProduct {
+  id                 String   @id
+  images             String[]
+  description_images String[]
+  discount           Int      @default(0)
+  numSold            Int      @default(0)
+  productId          String   @unique
+  Color              Color?
+  Size               Size?
+  Product            Product  @relation(fields: [productId], references: [id])
+}
+
